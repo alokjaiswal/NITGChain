@@ -5,14 +5,17 @@ import calendar
 import threading
 import json
 
-import sys
-sys.path.append('./')
+import os,sys,inspect
+currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+sys.path.insert(1,currentdir) 
+
 
 
 from Blockchain import Blockchain
 from Block import Block
 import util.consts as consts
 import db.chain as db
+
 
 
 from flask import Flask, request
@@ -50,14 +53,14 @@ rpc = FastRPCHandler(app,url = '/API')
 
 peers = set()
 
-
+'''
 def transaction():
     return json.loads(json.dumps({"data":"hello"}))
 
 
 rpc.register_method('test',transaction)
 
-
+'''
 
 def sync_nodes():
     """
@@ -98,6 +101,11 @@ def sync_nodes():
 
 if __name__=="__main__":
     try:
+        if (db.NODE_KEY_STORE):
+            sk,vk = db.store_key_pair()
+            print(msg)
+            print(keys)
+            
 
         if (db.NEW_BLOCKCHAIN):
             print("Local Database Unavailable")
@@ -120,6 +128,7 @@ if __name__=="__main__":
 
 
     except KeyboardInterrupt:
-        db.db_close()
+        db.db.close()
+        db.node_db.close()
         print("FullNode: singing offf!!!!")
         

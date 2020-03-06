@@ -105,7 +105,7 @@ class Blockchain:
     
     def build_chain_from_header(self,headers):
         if headers != None:
-            
+            a=5
 
     def mine(self):
         """
