@@ -16,6 +16,8 @@ from Block import Block
 import util.consts as consts
 import db.chain as db
 
+from Transaction import Transaction
+
 
 
 from flask import Flask, request
@@ -53,14 +55,7 @@ rpc = FastRPCHandler(app,url = '/API')
 
 peers = set()
 
-'''
-def transaction():
-    return json.loads(json.dumps({"data":"hello"}))
 
-
-rpc.register_method('test',transaction)
-
-'''
 
 def sync_nodes():
     """
@@ -97,9 +92,93 @@ def sync_nodes():
 
 
 
+def send_transaction(sender_public_key,sender_address,data,amount,reciever_address,signature):
+    '''
+    calculate of senders transactions in blockchain 
+    sender signes using his wallet and sends the signature private key is not required to be sent to the blockchain node
+    '''
+    
+    if (type(sender_public_key) != str):
+        return {"ERROR":"TYPE_ERROR:Type of sender_public_key is not string"}
+    
+    if (type(sender_address) != str):
+        return {"ERROR":"TYPE_ERROR:Type of sender_sender is not string"}
+    
+    if(type(data) != dict):
+        return {"ERROR":"TYPE_ERROR: Invalid data format"}
+    
+    if(type(amount) != float):
+        return {"ERROR":"Invalid type of amount"}
+    
+    if (type(reciever_address) != str):
+        return {"ERROR":"TYPE_ERROR:Type of reciever_address is not string"}
+    
+    if (type(signature) != str):
+        return {"ERROR":"TYPE_ERROR:Type of signature is not string"}
+    
+    
+    txn = Transaction(0,sender_address,reciever_address,amount,sender_public_key,data,time.time())
+    
+    blockchain.unconfirmed_transactions.append(txn)
+    
+    
+    send_txn_to_peers(txn)
+        
+    
+    return txn.toStr()
+    
 
+
+
+def get_transaction(txn):
+    
+    if(type(txn) != str):
+        return {"ERROR":"TYPE_ERROR: Type of data recieved is not string"}
+    
+    txn = Transaction.Objectify(txn)
+    
+    if(type(txn.nonce) != int):
+        return {"ERROR":"Invalid type of nonce in transaction"}
+    
+    if (type(txn.vk) != str):
+        return {"ERROR":"TYPE_ERROR:Type of sender_public_key is not string"}
+    
+    if (type(txn.from_account) != str):
+        return {"ERROR":"TYPE_ERROR:Type of sender_address is not string"}
+    
+    if(type(txn.data) != dict):
+        return {"ERROR":"TYPE_ERROR: Invalid data format"}
+    
+    if(type(txn.amount) != float):
+        return {"ERROR":"Invalid type of amount"}
+    
+    if (type(txn.to_account) != str):
+        return {"ERROR":"TYPE_ERROR:Type of reciever_address is not string"}
+    
+    if (type(txn.sig) != str):
+        return {"ERROR":"TYPE_ERROR:Type of signature is not string"}
+    
+    blockchain.unconfirmed_transactions.append(txn)
+    
+    send_txn_to_peers(txn)
+    
+    return {"Status":"OK"}
+
+
+def send_txn_to_peers(txn):
+    for node in peers:
+        myserver = client.Server(node+'/API')
+        try:
+            response = myserver.get_transaction(json.dumps(txn))
+        except:
+            peers.remove(node)
+
+
+        
+rpc.register_method("get_transaction",get_transaction)
 
 if __name__=="__main__":
+    global NODE_PORT
     try:
         if (db.NODE_KEY_STORE):
             sk,vk = db.store_key_pair()
@@ -122,7 +201,9 @@ if __name__=="__main__":
             
         sync_nodes()
         
-        app.run(host = "0.0.0.0",port=8000,debug=True)
+        NODE_PORT = 8000
+        
+        app.run(host = "0.0.0.0",port=NODE_PORT,debug=True)
 
 
 

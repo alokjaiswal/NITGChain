@@ -2,13 +2,6 @@ import plyvel
 import json
 
 import os,sys,inspect
-'''
-currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
-parentdir = os.path.dirname(currentdir)+"/util"
-sys.path.insert(0,parentdir) 
-sys.path.insert(1,currentdir)
-yy = os.path.abspath(os.getcwd())
-'''
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parentdir = os.path.dirname(currentdir)+"/util"
 sys.path.insert(0,parentdir)

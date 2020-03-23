@@ -2,6 +2,12 @@ import plyvel
 
 DB_STATE = 0
 
+
+
+
+NODE_PORT = 0
+SEED_PORT = 0
+
 def CHECK_DB():
     try:
         db = plyvel.DB('./')
